@@ -5,12 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>올림포스 관리자 대시보드</title>
 <meta name="theme-color" content="#1A1611">
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="올림포스">
-<link rel="apple-touch-icon" href="icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -135,6 +130,25 @@ body {
 .h3 { background: #7dbfb4; color: #124038; }
 .h4 { background: #2C6E63; color: #fff; }
 
+/* ── HEATMAP CLASS TABS ── */
+.class-tabs {
+  display: flex; gap: 6px; padding: 12px 16px 0;
+  border-bottom: 1px solid var(--ink-12); background: var(--paper-2);
+  flex-wrap: wrap;
+}
+.class-tab {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 6px 14px; border-radius: 2px 2px 0 0;
+  border: 1px solid transparent; border-bottom: none;
+  cursor: pointer; color: var(--ink-30); background: transparent;
+  transition: all .15s; margin-bottom: -1px;
+}
+.class-tab:hover { color: var(--ink-60); background: var(--paper-3); }
+.class-tab.active {
+  color: var(--accent); background: #fff;
+  border-color: var(--ink-12); border-bottom-color: #fff;
+}
+
 /* ── WEAK WORDS ── */
 .weak-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .weak-item {
@@ -233,7 +247,9 @@ body {
       <thead>
         <tr>
           <th>이름</th>
-          <th>이메일</th>
+          <th>닉네임</th>
+          <th>반</th>
+          <th>번호</th>
           <th>마지막 접속</th>
           <th>학습 단어</th>
           <th>정답률</th>
@@ -241,14 +257,15 @@ body {
         </tr>
       </thead>
       <tbody id="student-tbody">
-        <tr><td colspan="6" class="empty">로딩 중...</td></tr>
-      </tbody>
-    </table>
+        <tr><td colspan="8" class="empty">로딩 중...</td></tr>
+      </tbody>    </table>
   </div>
 
   <!-- 강별 진행률 히트맵 -->
   <div class="sec-title">강별 진행률 히트맵</div>
   <div class="heatmap-wrap">
+    <div class="class-tabs" id="class-tabs"></div>
+    <div style="overflow-x:auto">
     <table class="heatmap-table" id="heatmap-table">
       <thead>
         <tr id="heatmap-head">
@@ -257,6 +274,7 @@ body {
       </thead>
       <tbody id="heatmap-body"></tbody>
     </table>
+    </div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;margin-top:8px;padding:0 4px">
     <span style="font-family:var(--mono);font-size:9px;color:var(--ink-30);letter-spacing:0.1em">진행률:</span>
@@ -424,8 +442,10 @@ function renderDashboard(data) {
       const prog = Math.min(100, Math.round(learned / TOTAL_VOCAB * 100));
       return `
         <tr>
-          <td class="name">${s.name || '이름없음'}</td>
-          <td class="email">${s.email || '—'}</td>
+          <td class="name">${esc(s.name || '이름없음')}</td>
+          <td class="date">${esc(s.nick || '—')}</td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--ink-60)">${esc(String(s.cls||'—'))}</td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--ink-60)">${esc(String(s.num||'—'))}</td>
           <td class="date">${lastLogin}</td>
           <td class="date">${learned.toLocaleString()}</td>
           <td>${acc !== null ? acc + '%' : '—'}</td>
@@ -440,36 +460,59 @@ function renderDashboard(data) {
   }
 
   // ── Heatmap ───────────────────────────────────────────────────
-  // Build heatmap header (1강~20강)
-  const head = document.getElementById('heatmap-head');
-  head.innerHTML = '<th class="name-col">이름</th>' +
-    Array.from({length: TOTAL_GANGS}, (_, i) => `<th>${i+1}강</th>`).join('');
+  // 반 목록 추출
+  const classes = ['전체', ...new Set(
+    data.map(d => d.student.cls).filter(Boolean).map(String).sort((a,b) => Number(a)-Number(b))
+  ).values()].map(c => c === '전체' ? '전체' : c + '반');
 
-  const hmBody = document.getElementById('heatmap-body');
-  hmBody.innerHTML = data.slice(0, 30).map(({ student: s, progress: p }) => {
-    const learned = p.learned || {};
-    // Count learned words per gang
-    const gangCounts = {};
-    Object.keys(learned).forEach(key => {
-      const gang = key.split('_')[0];
-      gangCounts[gang] = (gangCounts[gang] || 0) + 1;
-    });
-
-    const cells = Array.from({length: TOTAL_GANGS}, (_, i) => {
-      const g = String(i + 1);
-      const cnt = gangCounts[g] || 0;
-      // Vocab per gang varies; approximate 3382/20 ≈ 169
-      const pct = Math.min(100, Math.round(cnt / 169 * 100));
-      const hClass = pct === 0 ? 'h0' : pct <= 25 ? 'h1' : pct <= 50 ? 'h2' : pct <= 75 ? 'h3' : 'h4';
-      return `<td class="${hClass}" title="${pct}%">${pct > 0 ? pct + '%' : ''}</td>`;
-    }).join('');
-
-    return `<tr><td class="name-cell">${s.name || s.email}</td>${cells}</tr>`;
-  }).join('');
-
-  if (data.length === 0) {
-    hmBody.innerHTML = '<tr><td colspan="21" class="empty">학생이 없습니다</td></tr>';
+  // 탭 렌더링
+  const tabsEl = document.getElementById('class-tabs');
+  let activeClass = '전체';
+  function renderTabs() {
+    tabsEl.innerHTML = classes.map(c =>
+      `<button class="class-tab${c === activeClass ? ' active' : ''}" onclick="setHeatmapClass('${c}')">${c}</button>`
+    ).join('');
   }
+  window.setHeatmapClass = function(cls) {
+    activeClass = cls;
+    renderTabs();
+    renderHeatmap();
+  };
+
+  function renderHeatmap() {
+    const filtered = activeClass === '전체'
+      ? data
+      : data.filter(d => String(d.student.cls || '') + '반' === activeClass);
+
+    const head = document.getElementById('heatmap-head');
+    head.innerHTML = '<th class="name-col">이름</th>' +
+      Array.from({length: TOTAL_GANGS}, (_, i) => `<th>${i+1}강</th>`).join('');
+
+    const hmBody = document.getElementById('heatmap-body');
+    if (filtered.length === 0) {
+      hmBody.innerHTML = '<tr><td colspan="21" class="empty">학생이 없습니다</td></tr>';
+      return;
+    }
+    hmBody.innerHTML = filtered.map(({ student: s, progress: p }) => {
+      const learned = p.learned || {};
+      const gangCounts = {};
+      Object.keys(learned).forEach(key => {
+        const gang = key.split('_')[0];
+        gangCounts[gang] = (gangCounts[gang] || 0) + 1;
+      });
+      const cells = Array.from({length: TOTAL_GANGS}, (_, i) => {
+        const g = String(i + 1);
+        const cnt = gangCounts[g] || 0;
+        const pct = Math.min(100, Math.round(cnt / 169 * 100));
+        const hClass = pct === 0 ? 'h0' : pct <= 25 ? 'h1' : pct <= 50 ? 'h2' : pct <= 75 ? 'h3' : 'h4';
+        return `<td class="${hClass}" title="${pct}%">${pct > 0 ? pct + '%' : ''}</td>`;
+      }).join('');
+      return `<tr><td class="name-cell">${esc(s.name || s.nick || '—')}</td>${cells}</tr>`;
+    }).join('');
+  }
+
+  renderTabs();
+  renderHeatmap();
 
   // ── Weak words ────────────────────────────────────────────────
   const wordErrors = {};  // word_key -> { wrong, meaning, word }
@@ -573,15 +616,6 @@ window.resetAllScores = async function() {
     btn.disabled = false; btn.textContent = '⚠ 전체 초기화';
   }
 };
-</script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(reg => console.log("SW 등록됨:", reg.scope))
-        .catch(err => console.log("SW 실패:", err));
-    });
-  }
 </script>
 </body>
 </html>
