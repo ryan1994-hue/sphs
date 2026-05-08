@@ -6,13 +6,7 @@
 <title>올림포스 고1 영어 — 1~20강</title>
 
 <!-- PWA -->
-<meta name="theme-color" content="#1A1611">
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="올림포스">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#1a56db">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="올림포스">
@@ -1392,16 +1386,38 @@ const ADV_DATA = {
 // ── 고난이도 강 상태 관리 ─────────────────────────────────────────
 const ADV_KEY = 'adv';
 
+// 날짜 기반 시드로 매일 다른 단어/문장 선택
+function dateSeed(){
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+function seededShuffle(arr, seed){
+  const a = arr.slice();
+  let s = seed;
+  for(let i = a.length - 1; i > 0; i--){
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function todayAdvVocab(){
+  return seededShuffle(ADV_DATA.vocab, dateSeed()).slice(0, 20);
+}
+function todayAdvSents(){
+  return seededShuffle(ADV_DATA.sentences, dateSeed() + 1).slice(0, 5);
+}
+
 function advCompletion(){
-  const ws = ADV_DATA.vocab.slice(0,20);
+  const ws = todayAdvVocab();
   if(!ws.length) return 0;
   return ws.filter(w => S.learned[ADV_KEY+'_'+w.word]).length / ws.length;
 }
 
 function openAdvGang(){
   curGang = ADV_KEY;
-  const wc = Math.min(ADV_DATA.vocab.length, 20);
-  const sc = ADV_DATA.sentences.length;
+  const wc = todayAdvVocab().length;
+  const sc = todayAdvSents().length;
   document.getElementById('gd-num').textContent = '고난도';
   document.getElementById('gd-wc').textContent = wc;
   document.getElementById('gd-sc').textContent = sc;
@@ -1413,8 +1429,8 @@ function openAdvGang(){
 }
 
 // curGang이 'adv'일 때 DATA 대신 ADV_DATA를 반환하는 헬퍼
-function curVocab(){ return curGang===ADV_KEY ? ADV_DATA.vocab.slice(0,20) : (DATA.vocab[String(curGang)]||[]); }
-function curSents(){ return curGang===ADV_KEY ? ADV_DATA.sentences : (DATA.sentences[String(curGang)]||[]); }
+function curVocab(){ return curGang===ADV_KEY ? todayAdvVocab() : (DATA.vocab[String(curGang)]||[]); }
+function curSents(){ return curGang===ADV_KEY ? todayAdvSents() : (DATA.sentences[String(curGang)]||[]); }
 function curLabel(){ return curGang===ADV_KEY ? '고난이도' : curGang+'강'; }
 
 const TOTAL_WORDS = Object.values(DATA.vocab).reduce((a,v)=>a+v.length,0);
@@ -2156,15 +2172,6 @@ setTimeout(()=>{
     if(nameEl) nameEl.textContent=prof.nick;
   }
 }, 500);
-</script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(reg => console.log("SW 등록됨:", reg.scope))
-        .catch(err => console.log("SW 실패:", err));
-    });
-  }
 </script>
 </body>
 </html>
