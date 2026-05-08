@@ -2157,6 +2157,132 @@ function stripGrammarNote(text){
   return text.trim();
 }
 
+// ── PULL-TO-REFRESH ───────────────────────────────────────────────
+(function(){
+  // 인디케이터 엘리먼트 생성
+  const ptr = document.createElement('div');
+  ptr.id = 'ptr-indicator';
+  ptr.innerHTML = `
+    <div id="ptr-inner">
+      <svg id="ptr-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 3v10M10 3L6.5 6.5M10 3l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 13.5A6 6 0 1 0 10 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+      </svg>
+      <span id="ptr-text">당겨서 새로고침</span>
+    </div>
+  `;
+  document.body.prepend(ptr);
+
+  // CSS 동적 삽입
+  const style = document.createElement('style');
+  style.textContent = `
+    #ptr-indicator {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      transform: translateY(-60px);
+      transition: transform 0.2s ease;
+    }
+    #ptr-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 8px 18px;
+      border-radius: 0 0 20px 20px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    #ptr-indicator.ptr-visible #ptr-inner { opacity: 1; }
+    #ptr-indicator.ptr-ready #ptr-inner { background: var(--accent); }
+    #ptr-indicator.ptr-loading #ptr-inner { background: var(--accent); }
+    #ptr-arrow {
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+    #ptr-indicator.ptr-ready #ptr-arrow { transform: rotate(180deg); }
+    @keyframes ptr-spin { to { transform: rotate(360deg); } }
+    #ptr-indicator.ptr-loading #ptr-arrow {
+      animation: ptr-spin 0.7s linear infinite;
+      opacity: 0.8;
+    }
+    body.ptr-pulling { overflow: hidden; }
+  `;
+  document.head.appendChild(style);
+
+  // 터치 상태
+  let startY = 0;
+  let currentY = 0;
+  let pulling = false;
+  let triggered = false;
+  const THRESHOLD = 72;   // 새로고침 발동 거리 (px)
+  const MAX_PULL  = 100;  // 최대 당김 거리
+
+  function getScrollTop() {
+    return window.scrollY || document.documentElement.scrollTop;
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    if (getScrollTop() === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+      triggered = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!pulling) return;
+    currentY = e.touches[0].clientY;
+    const dist = Math.max(0, currentY - startY);
+    if (dist <= 0) return;
+
+    const pull = Math.min(dist * 0.5, MAX_PULL);
+    ptr.style.transform = `translateY(${pull - 60}px)`;
+    ptr.classList.add('ptr-visible');
+
+    if (dist >= THRESHOLD) {
+      ptr.classList.add('ptr-ready');
+      document.getElementById('ptr-text').textContent = '놓으면 새로고침';
+    } else {
+      ptr.classList.remove('ptr-ready');
+      document.getElementById('ptr-text').textContent = '당겨서 새로고침';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+
+    const dist = currentY - startY;
+    if (dist >= THRESHOLD && !triggered) {
+      triggered = true;
+      // 로딩 상태
+      ptr.classList.add('ptr-loading');
+      ptr.classList.remove('ptr-ready');
+      document.getElementById('ptr-text').textContent = '새로고침 중...';
+      ptr.style.transform = 'translateY(0px)';
+
+      // 살짝 딜레이 후 새로고침 (애니메이션 보이도록)
+      setTimeout(() => { location.reload(); }, 600);
+    } else {
+      // 원래 위치로 복귀
+      ptr.style.transition = 'transform 0.3s ease';
+      ptr.style.transform = 'translateY(-60px)';
+      ptr.classList.remove('ptr-visible', 'ptr-ready');
+      setTimeout(() => { ptr.style.transition = ''; }, 300);
+    }
+    startY = 0; currentY = 0;
+  }, { passive: true });
+})();
+
 // ── INIT ──────────────────────────────────────────────────────────
 document.getElementById('st-w-total').textContent=TOTAL_WORDS;
 document.getElementById('st-s-total').textContent=TOTAL_SENTS;
