@@ -6,7 +6,13 @@
 <title>올림포스 고1 영어 — 1~20강</title>
 
 <!-- PWA -->
-<meta name="theme-color" content="#1a56db">
+<meta name="theme-color" content="#1A1611">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="올림포스">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="올림포스">
@@ -2150,6 +2156,15 @@ setTimeout(()=>{
     if(nameEl) nameEl.textContent=prof.nick;
   }
 }, 500);
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg => console.log("SW 등록됨:", reg.scope))
+        .catch(err => console.log("SW 실패:", err));
+    });
+  }
 </script>
 </body>
 </html>

@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>올림포스 관리자 대시보드</title>
 <meta name="theme-color" content="#1A1611">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="올림포스">
+<link rel="apple-touch-icon" href="icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -568,6 +573,15 @@ window.resetAllScores = async function() {
     btn.disabled = false; btn.textContent = '⚠ 전체 초기화';
   }
 };
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg => console.log("SW 등록됨:", reg.scope))
+        .catch(err => console.log("SW 실패:", err));
+    });
+  }
 </script>
 </body>
 </html>
