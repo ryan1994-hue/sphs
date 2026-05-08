@@ -642,11 +642,23 @@ let currentUser = null;
 let saveTimeout = null;
 
 // ── Auth guard: 로그인 안 됐으면 login.html로 ─────────────────────
+let authResolved = false;
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    // 첫 번째 호출은 리디렉션 로그인 복원 중일 수 있으므로 잠깐 대기
+    if (!authResolved) {
+      authResolved = true;
+      setTimeout(() => {
+        if (!auth.currentUser) {
+          window.location.href = 'login.html';
+        }
+      }, 2500);
+      return;
+    }
     window.location.href = 'login.html';
     return;
   }
+  authResolved = true;
   currentUser = user;
 
   // 사용자 이름 헤더에 표시
