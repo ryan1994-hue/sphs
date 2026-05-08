@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>올림포스 관리자 대시보드</title>
+<meta name="theme-color" content="#1A1611">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper:    #F7F3EC;
+  --paper-2:  #EDE8DF;
+  --paper-3:  #E3DBCF;
+  --ink:      #1A1611;
+  --ink-60:   #5C5448;
+  --ink-30:   #A09888;
+  --ink-12:   #DDD8CF;
+  --accent:   #2C6E63;
+  --accent-bg:#E0EDEA;
+  --warn:     #C0392B;
+  --warn-bg:  #FEF3EF;
+  --serif:    'DM Serif Display', Georgia, serif;
+  --sans:     'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',-apple-system,sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--sans); background: var(--paper); color: var(--ink);
+  min-height: 100vh; font-size: 14px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.admin-head {
+  background: var(--ink); color: var(--paper);
+  padding: 0 24px; height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.admin-head .left { display: flex; align-items: center; gap: 12px; }
+.admin-head img { width: 26px; height: 26px; object-fit: contain; filter: invert(1); opacity: 0.7; }
+.admin-head .brand { font-family: var(--serif); font-size: 16px; font-weight: 400; }
+.admin-head .badge {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 0.16em;
+  text-transform: uppercase; background: var(--accent);
+  padding: 3px 8px; border-radius: 2px; color: var(--paper);
+}
+.admin-head .right { display: flex; align-items: center; gap: 12px; }
+.admin-head .admin-name { font-family: var(--mono); font-size: 10px; opacity: 0.5; letter-spacing: 0.06em; }
+.logout-btn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: rgba(247,243,236,0.1); border: 1px solid rgba(247,243,236,0.15);
+  color: var(--paper); padding: 6px 12px; cursor: pointer; border-radius: 2px;
+  transition: background .15s;
+}
+.logout-btn:hover { background: rgba(247,243,236,0.18); }
+
+/* ── LAYOUT ── */
+.admin-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-family: var(--mono); font-size: 9px; color: var(--ink-30);
+  letter-spacing: 0.16em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; margin-top: 32px;
+}
+.sec-title::after { content: ''; flex: 1; height: 1px; background: var(--ink-12); }
+.sec-title:first-child { margin-top: 0; }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
+.stat-card {
+  background: #fff; border: 1px solid var(--ink-12); padding: 18px 20px;
+  border-radius: 2px;
+}
+.stat-card .n {
+  font-family: var(--serif); font-size: 36px; font-weight: 400;
+  color: var(--ink); line-height: 1; letter-spacing: -0.02em; display: block; margin-bottom: 6px;
+}
+.stat-card .l { font-family: var(--mono); font-size: 9px; color: var(--ink-30); letter-spacing: 0.1em; text-transform: uppercase; }
+.stat-card .sub { font-size: 11px; color: var(--ink-30); margin-top: 4px; }
+
+/* ── TABLE ── */
+.table-wrap { background: #fff; border: 1px solid var(--ink-12); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-family: var(--mono); font-size: 9px; font-weight: 400; color: var(--ink-30);
+  letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 16px;
+  text-align: left; border-bottom: 1px solid var(--ink-12); background: var(--paper-2);
+  white-space: nowrap;
+}
+.data-table td { padding: 11px 16px; border-bottom: 1px solid var(--ink-12); font-size: 13px; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--paper-2); }
+.data-table .name { font-weight: 500; color: var(--ink); }
+.data-table .email { color: var(--ink-30); font-family: var(--mono); font-size: 11px; }
+.data-table .date { color: var(--ink-30); font-family: var(--mono); font-size: 11px; }
+
+/* ── PROGRESS BAR (in table) ── */
+.pbar-wrap { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.pbar { flex: 1; height: 4px; background: var(--ink-12); border-radius: 2px; overflow: hidden; }
+.pbar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+.pbar-val { font-family: var(--mono); font-size: 10px; color: var(--ink-30); min-width: 28px; text-align: right; }
+
+/* ── GANG HEATMAP ── */
+.heatmap-wrap { background: #fff; border: 1px solid var(--ink-12); border-radius: 2px; overflow-x: auto; }
+.heatmap-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+.heatmap-table th {
+  font-family: var(--mono); font-size: 8.5px; color: var(--ink-30);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--ink-12);
+  background: var(--paper-2); white-space: nowrap;
+}
+.heatmap-table th.name-col { text-align: left; padding-left: 16px; min-width: 120px; }
+.heatmap-table td {
+  padding: 7px 4px; text-align: center; border-bottom: 1px solid var(--ink-12);
+  font-family: var(--mono); font-size: 10px; color: var(--ink-30); transition: background .1s;
+}
+.heatmap-table td.name-cell {
+  text-align: left; padding-left: 16px; color: var(--ink); font-family: var(--sans);
+  font-size: 12px; font-weight: 500; white-space: nowrap;
+}
+.heatmap-table tr:last-child td { border-bottom: none; }
+/* Heat colors */
+.h0 { background: var(--paper-2); color: var(--ink-12); }
+.h1 { background: #d1e9e4; color: #2C6E63; }
+.h2 { background: #a8d4cc; color: #1d5048; }
+.h3 { background: #7dbfb4; color: #124038; }
+.h4 { background: #2C6E63; color: #fff; }
+
+/* ── WEAK WORDS ── */
+.weak-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.weak-item {
+  background: #fff; border: 1px solid var(--ink-12); padding: 12px 16px;
+  border-radius: 2px; display: flex; align-items: center; justify-content: space-between;
+}
+.weak-item .word { font-weight: 500; color: var(--ink); font-size: 15px; }
+.weak-item .meaning { font-size: 12px; color: var(--ink-30); margin-top: 2px; }
+.weak-item .wrong-ct {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: var(--warn); background: var(--warn-bg); padding: 3px 8px; border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* ── LOADING ── */
+.loading-screen {
+  min-height: calc(100vh - 54px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.spinner { width: 28px; height: 28px; border: 2px solid var(--ink-12); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-screen p { font-family: var(--mono); font-size: 11px; color: var(--ink-30); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ── EMPTY STATE ── */
+.empty { padding: 40px; text-align: center; color: var(--ink-30); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ── REFRESH BTN ── */
+.refresh-btn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: var(--paper-2); border: 1px solid var(--ink-12); color: var(--ink-60);
+  padding: 7px 14px; cursor: pointer; border-radius: 2px; transition: all .15s;
+}
+.refresh-btn:hover { background: var(--paper-3); color: var(--ink); }
+
+/* ── MOBILE ── */
+@media (max-width: 700px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .weak-grid { grid-template-columns: 1fr; }
+  .admin-wrap { padding: 20px 16px 50px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="admin-head">
+  <div class="left">
+    <img src="data:image/png;base64,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" alt="신평고">
+    <span class="brand">올림포스 고1 영어</span>
+    <span class="badge">관리자</span>
+  </div>
+  <div class="right">
+    <span class="admin-name" id="admin-name"></span>
+    <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+  </div>
+</header>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner"></div>
+  <p>데이터 불러오는 중...</p>
+</div>
+
+<!-- DASHBOARD (hidden until loaded) -->
+<div class="admin-wrap" id="dashboard" style="display:none">
+
+  <!-- 요약 통계 -->
+  <div class="sec-title">전체 현황</div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="n" id="st-total">—</span>
+      <div class="l">전체 학생</div>
+    </div>
+    <div class="stat-card">
+      <span class="n" id="st-today">—</span>
+      <div class="l">오늘 접속</div>
+      <div class="sub" id="st-today-sub"></div>
+    </div>
+    <div class="stat-card">
+      <span class="n" id="st-avg-acc">—</span>
+      <div class="l">평균 정답률</div>
+    </div>
+    <div class="stat-card">
+      <span class="n" id="st-avg-prog">—</span>
+      <div class="l">평균 학습 진행률</div>
+    </div>
+  </div>
+
+  <!-- 학생 목록 -->
+  <div class="sec-title" style="margin-top:32px">
+    학생 목록
+    <button class="refresh-btn" onclick="loadDashboard()" style="margin-left:auto;font-size:10px">새로고침</button>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>이름</th>
+          <th>이메일</th>
+          <th>마지막 접속</th>
+          <th>학습 단어</th>
+          <th>정답률</th>
+          <th>학습 진행률</th>
+        </tr>
+      </thead>
+      <tbody id="student-tbody">
+        <tr><td colspan="6" class="empty">로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 강별 진행률 히트맵 -->
+  <div class="sec-title">강별 진행률 히트맵</div>
+  <div class="heatmap-wrap">
+    <table class="heatmap-table" id="heatmap-table">
+      <thead>
+        <tr id="heatmap-head">
+          <th class="name-col">이름</th>
+        </tr>
+      </thead>
+      <tbody id="heatmap-body"></tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;padding:0 4px">
+    <span style="font-family:var(--mono);font-size:9px;color:var(--ink-30);letter-spacing:0.1em">진행률:</span>
+    <span class="h0" style="padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:9px">0%</span>
+    <span class="h1" style="padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:9px">1–25%</span>
+    <span class="h2" style="padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:9px">26–50%</span>
+    <span class="h3" style="padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:9px">51–75%</span>
+    <span class="h4" style="padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:9px">76–100%</span>
+  </div>
+
+  <!-- 약점 단어 TOP 20 -->
+  <div class="sec-title">전체 약점 단어 TOP 20 (오답률 기준)</div>
+  <div class="weak-grid" id="weak-grid">
+    <div class="empty" style="grid-column:span 2">로딩 중...</div>
+  </div>
+
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── ⚠️ Firebase 설정값을 여기에 붙여넣으세요 ──────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyAtqvh8PN77DrPIUIPLrwePmKYiS5oyfgw",
+  authDomain:        "commonenglish1-28c12.firebaseapp.com",
+  projectId:         "commonenglish1-28c12",
+  storageBucket:     "commonenglish1-28c12.firebasestorage.app",
+  messagingSenderId: "428414437481",
+  appId:             "1:428414437481:web:5d20cee7b0fbf210993af8",
+  measurementId:     "G-BPY769C9G9"
+};
+// ────────────────────────────────────────────────────────────────
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const TOTAL_VOCAB  = 3382;   // 전체 단어 수
+const TOTAL_GANGS  = 20;
+
+// ── Auth guard ───────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const adminRef = doc(db, 'admins', user.email);
+  const adminSnap = await getDoc(adminRef);
+  if (!adminSnap.exists()) {
+    alert('관리자 권한이 없습니다.');
+    await signOut(auth);
+    window.location.href = 'login.html';
+    return;
+  }
+  document.getElementById('admin-name').textContent = user.displayName || user.email;
+  await loadDashboard();
+});
+
+window.doLogout = async function() {
+  await signOut(auth);
+  window.location.href = 'login.html';
+};
+
+// ── Load all data ────────────────────────────────────────────────
+window.loadDashboard = async function() {
+  document.getElementById('loading-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+
+  try {
+    // 1. Get all users
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const students  = [];
+    usersSnap.forEach(d => {
+      const data = d.data();
+      if (data.role !== 'admin') students.push({ uid: d.id, ...data });
+    });
+
+    // 2. Get progress data for each student
+    const progressData = await Promise.all(students.map(async (s) => {
+      try {
+        const progRef  = doc(db, 'progress', s.uid);
+        const progSnap = await getDoc(progRef);
+        return { student: s, progress: progSnap.exists() ? progSnap.data() : {} };
+      } catch { return { student: s, progress: {} }; }
+    }));
+
+    renderDashboard(progressData);
+  } catch (err) {
+    console.error(err);
+    alert('데이터 로드 오류: ' + err.message);
+  } finally {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+};
+
+function renderDashboard(data) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  // ── Summary stats ──────────────────────────────────────────────
+  let todayCount = 0;
+  let totalAccNum = 0, totalAccDen = 0;
+  let totalProgNum = 0;
+
+  data.forEach(({ student, progress }) => {
+    // Today access
+    const lastLogin = student.lastLogin?.toDate?.()?.toISOString?.()?.slice(0,10) || '';
+    if (lastLogin === today) todayCount++;
+    // Quiz accuracy
+    const qt = progress.quizTotal   || 0;
+    const qc = progress.quizCorrect || 0;
+    if (qt > 0) { totalAccNum += qc; totalAccDen += qt; }
+    // Progress
+    const learned = Object.keys(progress.learned || {}).length;
+    totalProgNum += (learned / TOTAL_VOCAB) * 100;
+  });
+
+  document.getElementById('st-total').textContent   = data.length;
+  document.getElementById('st-today').textContent   = todayCount;
+  document.getElementById('st-avg-acc').textContent =
+    totalAccDen > 0 ? Math.round(100 * totalAccNum / totalAccDen) + '%' : '—';
+  document.getElementById('st-avg-prog').textContent =
+    data.length > 0 ? Math.round(totalProgNum / data.length) + '%' : '—';
+
+  // ── Student table ──────────────────────────────────────────────
+  const tbody = document.getElementById('student-tbody');
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">학생이 없습니다</td></tr>';
+  } else {
+    tbody.innerHTML = data.map(({ student: s, progress: p }) => {
+      const lastLogin = s.lastLogin?.toDate?.()?.toLocaleDateString('ko-KR') || '—';
+      const learned = Object.keys(p.learned || {}).length;
+      const qt = p.quizTotal || 0;
+      const qc = p.quizCorrect || 0;
+      const acc = qt > 0 ? Math.round(100 * qc / qt) : null;
+      const prog = Math.min(100, Math.round(learned / TOTAL_VOCAB * 100));
+      return `
+        <tr>
+          <td class="name">${s.name || '이름없음'}</td>
+          <td class="email">${s.email || '—'}</td>
+          <td class="date">${lastLogin}</td>
+          <td class="date">${learned.toLocaleString()}</td>
+          <td>${acc !== null ? acc + '%' : '—'}</td>
+          <td>
+            <div class="pbar-wrap">
+              <div class="pbar"><div class="pbar-fill" style="width:${prog}%"></div></div>
+              <div class="pbar-val">${prog}%</div>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Heatmap ───────────────────────────────────────────────────
+  // Build heatmap header (1강~20강)
+  const head = document.getElementById('heatmap-head');
+  head.innerHTML = '<th class="name-col">이름</th>' +
+    Array.from({length: TOTAL_GANGS}, (_, i) => `<th>${i+1}강</th>`).join('');
+
+  const hmBody = document.getElementById('heatmap-body');
+  hmBody.innerHTML = data.slice(0, 30).map(({ student: s, progress: p }) => {
+    const learned = p.learned || {};
+    // Count learned words per gang
+    const gangCounts = {};
+    Object.keys(learned).forEach(key => {
+      const gang = key.split('_')[0];
+      gangCounts[gang] = (gangCounts[gang] || 0) + 1;
+    });
+
+    const cells = Array.from({length: TOTAL_GANGS}, (_, i) => {
+      const g = String(i + 1);
+      const cnt = gangCounts[g] || 0;
+      // Vocab per gang varies; approximate 3382/20 ≈ 169
+      const pct = Math.min(100, Math.round(cnt / 169 * 100));
+      const hClass = pct === 0 ? 'h0' : pct <= 25 ? 'h1' : pct <= 50 ? 'h2' : pct <= 75 ? 'h3' : 'h4';
+      return `<td class="${hClass}" title="${pct}%">${pct > 0 ? pct + '%' : ''}</td>`;
+    }).join('');
+
+    return `<tr><td class="name-cell">${s.name || s.email}</td>${cells}</tr>`;
+  }).join('');
+
+  if (data.length === 0) {
+    hmBody.innerHTML = '<tr><td colspan="21" class="empty">학생이 없습니다</td></tr>';
+  }
+
+  // ── Weak words ────────────────────────────────────────────────
+  const wordErrors = {};  // word_key -> { wrong, meaning, word }
+  data.forEach(({ progress: p }) => {
+    Object.entries(p.learned || {}).forEach(([key, rec]) => {
+      if ((rec.wrong || 0) > 0) {
+        const word = key.split('_')[1];
+        if (!word) return;
+        if (!wordErrors[word]) wordErrors[word] = { word, wrong: 0, meaning: rec.meaning || '' };
+        wordErrors[word].wrong += rec.wrong;
+      }
+    });
+  });
+
+  const topWeak = Object.values(wordErrors)
+    .sort((a, b) => b.wrong - a.wrong)
+    .slice(0, 20);
+
+  const weakGrid = document.getElementById('weak-grid');
+  if (topWeak.length === 0) {
+    weakGrid.innerHTML = '<div class="empty" style="grid-column:span 2">오답 데이터가 없습니다</div>';
+  } else {
+    weakGrid.innerHTML = topWeak.map(w => `
+      <div class="weak-item">
+        <div>
+          <div class="word">${esc(w.word)}</div>
+          <div class="meaning">${esc(w.meaning)}</div>
+        </div>
+        <div class="wrong-ct">${w.wrong}회 오답</div>
+      </div>
+    `).join('');
+  }
+}
+
+function esc(s) {
+  return String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
