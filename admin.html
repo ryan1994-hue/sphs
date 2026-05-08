@@ -83,7 +83,7 @@ body {
 .stat-card .sub { font-size: 11px; color: var(--ink-30); margin-top: 4px; }
 
 /* ── TABLE ── */
-.table-wrap { background: #fff; border: 1px solid var(--ink-12); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+.table-wrap { background: #fff; border: 1px solid var(--ink-12); border-radius: 2px; overflow-x: auto; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
   font-family: var(--mono); font-size: 9px; font-weight: 400; color: var(--ink-30);
@@ -465,21 +465,30 @@ function renderDashboard(data) {
     data.map(d => d.student.cls).filter(Boolean).map(String).sort((a,b) => Number(a)-Number(b))
   ).values()].map(c => c === '전체' ? '전체' : c + '반');
 
-  // 탭 렌더링
-  const tabsEl = document.getElementById('class-tabs');
-  let activeClass = '전체';
-  function renderTabs() {
-    tabsEl.innerHTML = classes.map(c =>
-      `<button class="class-tab${c === activeClass ? ' active' : ''}" onclick="setHeatmapClass('${c}')">${c}</button>`
+  // 전역 상태로 노출 (인라인 onclick에서 접근 가능하도록)
+  window._hmData    = data;
+  window._hmClasses = classes;
+  window._hmActive  = '전체';
+  window._hmGangs   = TOTAL_GANGS;
+
+  window._renderHmTabs = function() {
+    const tabsEl = document.getElementById('class-tabs');
+    tabsEl.innerHTML = window._hmClasses.map(c =>
+      `<button class="class-tab${c === window._hmActive ? ' active' : ''}" onclick="setHeatmapClass('${c}')">${c}</button>`
     ).join('');
-  }
-  window.setHeatmapClass = function(cls) {
-    activeClass = cls;
-    renderTabs();
-    renderHeatmap();
   };
 
-  function renderHeatmap() {
+  window.setHeatmapClass = function(cls) {
+    window._hmActive = cls;
+    window._renderHmTabs();
+    window._renderHm();
+  };
+
+  window._renderHm = function() {
+    const data = window._hmData;
+    const activeClass = window._hmActive;
+    const TOTAL_GANGS = window._hmGangs;
+
     const filtered = activeClass === '전체'
       ? data
       : data.filter(d => String(d.student.cls || '') + '반' === activeClass);
@@ -509,10 +518,10 @@ function renderDashboard(data) {
       }).join('');
       return `<tr><td class="name-cell">${esc(s.name || s.nick || '—')}</td>${cells}</tr>`;
     }).join('');
-  }
+  };
 
-  renderTabs();
-  renderHeatmap();
+  window._renderHmTabs();
+  window._renderHm();
 
   // ── Weak words ────────────────────────────────────────────────
   const wordErrors = {};  // word_key -> { wrong, meaning, word }
