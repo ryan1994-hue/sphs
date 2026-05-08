@@ -384,8 +384,9 @@ body {
       btnWrap.style.opacity = '0.4';
       const result = await getRedirectResult(auth);
       if (result) {
+        redirectHandled = true;
         const user = result.user;
-        await syncUser(user);
+        try { await syncUser(user); } catch(e) { console.warn('syncUser 실패:', e); }
         const isAdmin = await checkAdmin(user.email);
         window.location.href = isAdmin ? 'admin.html' : '올림포스_1to20강.html';
         return;
@@ -399,9 +400,17 @@ body {
     btnWrap.style.opacity = '1';
   })();
 
-  // 이미 로그인된 경우 — 자동 이동 대신 배너 표시
+  // 이미 로그인된 경우 — 배너 표시 후 자동 이동
+  let redirectHandled = false;
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      if (!redirectHandled) {
+        setTimeout(async () => {
+          if (redirectHandled) return;
+          const isAdmin = await checkAdmin(user.email);
+          window.location.href = isAdmin ? 'admin.html' : '올림포스_1to20강.html';
+        }, 1500);
+      }
       // 배너 표시
       document.getElementById('already-in').style.display = 'block';
       document.getElementById('ai-name').textContent = user.displayName || '이름 없음';
@@ -513,9 +522,14 @@ body {
   // 관리자 여부 확인
   async function checkAdmin(email) {
     if (!email) return false;
-    const ref = doc(db, 'admins', email);
-    const snap = await getDoc(ref);
-    return snap.exists();
+    try {
+      const ref = doc(db, 'admins', email);
+      const snap = await getDoc(ref);
+      return snap.exists();
+    } catch (err) {
+      console.warn('관리자 확인 실패, 일반 학생으로 처리:', err);
+      return false;
+    }
   }
 </script>
 <script>
