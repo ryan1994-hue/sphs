@@ -406,11 +406,20 @@ window.loadDashboard = async function() {
     });
 
     // 2. Get progress data for each student
+    // nick/cls/num are stored in progress.profile (not users collection directly)
     const progressData = await Promise.all(students.map(async (s) => {
       try {
         const progRef  = doc(db, 'progress', s.uid);
         const progSnap = await getDoc(progRef);
-        return { student: s, progress: progSnap.exists() ? progSnap.data() : {} };
+        const progData = progSnap.exists() ? progSnap.data() : {};
+        const prof = progData.profile || {};
+        const enrichedStudent = {
+          ...s,
+          nick: s.nick || prof.nick || '',
+          cls:  (s.cls != null && s.cls !== '') ? s.cls : (prof.cls != null ? prof.cls : ''),
+          num:  (s.num != null && s.num !== '') ? s.num : (prof.num != null ? prof.num : ''),
+        };
+        return { student: enrichedStudent, progress: progData };
       } catch { return { student: s, progress: {} }; }
     }));
 
