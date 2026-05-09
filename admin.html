@@ -104,6 +104,28 @@ body {
 .pbar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
 .pbar-val { font-family: var(--mono); font-size: 10px; color: var(--ink-30); min-width: 28px; text-align: right; }
 
+/* ── STUDENT CLASS FILTER ── */
+.student-filter-bar {
+  display: flex; gap: 6px; padding: 10px 16px;
+  border-bottom: 1px solid var(--ink-12); background: var(--paper-2);
+  flex-wrap: wrap; align-items: center;
+}
+.student-filter-tab {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 5px 14px; border-radius: 2px;
+  border: 1px solid var(--ink-12); cursor: pointer;
+  color: var(--ink-30); background: transparent; transition: all .15s;
+}
+.student-filter-tab:hover { color: var(--ink-60); background: var(--paper-3); border-color: var(--ink-30); }
+.student-filter-tab.active {
+  color: var(--accent); background: var(--accent-bg);
+  border-color: var(--accent);
+}
+.student-count-badge {
+  font-family: var(--mono); font-size: 9px; color: var(--ink-30);
+  margin-left: auto; letter-spacing: 0.08em;
+}
+
 /* ── GANG HEATMAP ── */
 .heatmap-wrap { background: #fff; border: 1px solid var(--ink-12); border-radius: 2px; overflow-x: auto; }
 .heatmap-table { border-collapse: collapse; width: 100%; font-size: 11px; }
@@ -113,7 +135,7 @@ body {
   padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--ink-12);
   background: var(--paper-2); white-space: nowrap;
 }
-.heatmap-table th.name-col { text-align: left; padding-left: 16px; min-width: 120px; }
+.heatmap-table th.name-col { text-align: left; padding-left: 16px; min-width: 140px; }
 .heatmap-table td {
   padding: 7px 4px; text-align: center; border-bottom: 1px solid var(--ink-12);
   font-family: var(--mono); font-size: 10px; color: var(--ink-30); transition: background .1s;
@@ -243,6 +265,9 @@ body {
     <button class="refresh-btn" onclick="loadDashboard()" style="margin-left:auto;font-size:10px">새로고침</button>
   </div>
   <div class="table-wrap">
+    <div class="student-filter-bar" id="student-filter-bar">
+      <!-- 반 탭 동적 삽입 -->
+    </div>
     <table class="data-table">
       <thead>
         <tr>
@@ -429,11 +454,58 @@ function renderDashboard(data) {
     data.length > 0 ? Math.round(totalProgNum / data.length) + '%' : '—';
 
   // ── Student table ──────────────────────────────────────────────
-  const tbody = document.getElementById('student-tbody');
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">학생이 없습니다</td></tr>';
-  } else {
-    tbody.innerHTML = data.map(({ student: s, progress: p }) => {
+  // 반 목록 추출 (학생 목록용)
+  const studentClasses = ['전체', ...new Set(
+    data.map(d => d.student.cls).filter(c => c !== undefined && c !== null && c !== '')
+        .map(String).sort((a,b) => Number(a)-Number(b))
+  )];
+
+  window._stData    = data;
+  window._stActive  = '전체';
+  window._stTVocab  = TOTAL_VOCAB;
+
+  window._renderStudentTabs = function() {
+    const bar = document.getElementById('student-filter-bar');
+    const filtered = window._stActive === '전체'
+      ? window._stData
+      : window._stData.filter(d => String(d.student.cls || '') === window._stActive);
+    bar.innerHTML = window._stClasses.map(c =>
+      `<button class="student-filter-tab${c === window._stActive ? ' active' : ''}" onclick="setStudentClass('${c}')">${c === '전체' ? '전체' : c + '반'}</button>`
+    ).join('') + `<span class="student-count-badge">${filtered.length}명</span>`;
+  };
+
+  window._stClasses = studentClasses;
+
+  window.setStudentClass = function(cls) {
+    window._stActive = cls;
+    window._renderStudentTabs();
+    window._renderStudentTable();
+  };
+
+  window._renderStudentTable = function() {
+    const data = window._stData;
+    const activeClass = window._stActive;
+    const TOTAL_VOCAB = window._stTVocab;
+
+    const filtered = activeClass === '전체'
+      ? data
+      : data.filter(d => String(d.student.cls || '') === activeClass);
+
+    const tbody = document.getElementById('student-tbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">학생이 없습니다</td></tr>';
+      return;
+    }
+
+    // 반 → 번호 순 정렬
+    const sorted = [...filtered].sort((a, b) => {
+      const ca = Number(a.student.cls) || 0;
+      const cb = Number(b.student.cls) || 0;
+      if (ca !== cb) return ca - cb;
+      return (Number(a.student.num) || 0) - (Number(b.student.num) || 0);
+    });
+
+    tbody.innerHTML = sorted.map(({ student: s, progress: p }) => {
       const lastLogin = s.lastLogin?.toDate?.()?.toLocaleDateString('ko-KR') || '—';
       const learned = Object.keys(p.learned || {}).length;
       const qt = p.quizTotal || 0;
@@ -457,7 +529,10 @@ function renderDashboard(data) {
           </td>
         </tr>`;
     }).join('');
-  }
+  };
+
+  window._renderStudentTabs();
+  window._renderStudentTable();
 
   // ── Heatmap ───────────────────────────────────────────────────
   // 반 목록 추출
@@ -493,16 +568,24 @@ function renderDashboard(data) {
       ? data
       : data.filter(d => String(d.student.cls || '') + '반' === activeClass);
 
+    // 반 → 번호 순 정렬
+    const sorted = [...filtered].sort((a, b) => {
+      const ca = Number(a.student.cls) || 0;
+      const cb = Number(b.student.cls) || 0;
+      if (ca !== cb) return ca - cb;
+      return (Number(a.student.num) || 0) - (Number(b.student.num) || 0);
+    });
+
     const head = document.getElementById('heatmap-head');
     head.innerHTML = '<th class="name-col">이름</th>' +
       Array.from({length: TOTAL_GANGS}, (_, i) => `<th>${i+1}강</th>`).join('');
 
     const hmBody = document.getElementById('heatmap-body');
-    if (filtered.length === 0) {
+    if (sorted.length === 0) {
       hmBody.innerHTML = '<tr><td colspan="21" class="empty">학생이 없습니다</td></tr>';
       return;
     }
-    hmBody.innerHTML = filtered.map(({ student: s, progress: p }) => {
+    hmBody.innerHTML = sorted.map(({ student: s, progress: p }) => {
       const learned = p.learned || {};
       const gangCounts = {};
       Object.keys(learned).forEach(key => {
@@ -516,7 +599,10 @@ function renderDashboard(data) {
         const hClass = pct === 0 ? 'h0' : pct <= 25 ? 'h1' : pct <= 50 ? 'h2' : pct <= 75 ? 'h3' : 'h4';
         return `<td class="${hClass}" title="${pct}%">${pct > 0 ? pct + '%' : ''}</td>`;
       }).join('');
-      return `<tr><td class="name-cell">${esc(s.name || s.nick || '—')}</td>${cells}</tr>`;
+      const clsNum = (s.cls ? s.cls + '반 ' : '') + (s.num ? s.num + '번' : '');
+      const nameLine = esc(s.name || s.nick || '—');
+      const subLine  = clsNum ? `<div style="font-family:var(--mono);font-size:9px;color:var(--ink-30);margin-top:1px;letter-spacing:0.04em">${esc(clsNum)}</div>` : '';
+      return `<tr><td class="name-cell">${nameLine}${subLine}</td>${cells}</tr>`;
     }).join('');
   };
 
