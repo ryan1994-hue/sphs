@@ -259,6 +259,28 @@ body {
 }
 .switch-btn:active { transform: scale(0.99); }
 
+/* Install guide button */
+.install-guide-btn {
+  margin-top: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1.2px solid var(--accent);
+  color: var(--accent);
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background .15s, color .15s;
+}
+.install-guide-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* Footer note */
 .login-note {
   margin-top: 28px;
@@ -292,6 +314,7 @@ body {
     <div class="titles">
       <div class="app-name">올림포스 고1 영어</div>
       <div class="school">Shinpyeong High School · EBS 2026</div>
+      <button class="install-guide-btn" onclick="document.getElementById('install-modal').style.display='flex'">📲 설치 전 필독</button>
     </div>
   </div>
 
@@ -520,5 +543,99 @@ body {
     });
   }
 </script>
+<!-- 설치 안내 모달 -->
+<div id="install-modal" style="display:none; position:fixed; inset:0; background:rgba(26,22,17,0.6); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--paper); border-radius:16px; width:100%; max-width:360px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <!-- 모달 헤더 -->
+    <div style="padding:20px 20px 0; display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-family:var(--serif); font-size:18px;">바탕화면 설치 방법</div>
+      <button onclick="document.getElementById('install-modal').style.display='none'" style="background:none; border:none; cursor:pointer; color:var(--ink-30); font-size:22px; padding:0 4px; line-height:1;">×</button>
+    </div>
+    <!-- 탭 -->
+    <div style="display:flex; gap:0; padding:16px 20px 0;">
+      <button id="tab-android" onclick="switchTab('android')" style="flex:1; padding:9px 0; border:1.5px solid var(--accent); border-right:none; border-radius:8px 0 0 8px; background:var(--accent); color:#fff; font-family:var(--sans); font-size:13px; cursor:pointer;">🤖 안드로이드</button>
+      <button id="tab-ios" onclick="switchTab('ios')" style="flex:1; padding:9px 0; border:1.5px solid var(--accent); border-radius:0 8px 8px 0; background:transparent; color:var(--accent); font-family:var(--sans); font-size:13px; cursor:pointer;">🍎 아이폰 / 아이패드</button>
+    </div>
+    <!-- 안드로이드 내용 -->
+    <div id="content-android" style="padding:20px;">
+      <p style="font-size:12px; color:var(--ink-60); margin-bottom:16px; line-height:1.6;">Chrome 브라우저에서 아래 순서대로 진행하세요.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">1</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;"><strong>Chrome</strong>으로 이 페이지를 열어주세요.<br><span style="color:var(--ink-60); font-size:12px;">Samsung Internet 등 다른 브라우저는 지원 안 됩니다.</span></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">2</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">오른쪽 상단 <strong>⋮ (점 세 개)</strong> 버튼을 누르세요.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">3</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;"><strong>"홈 화면에 추가"</strong> 를 탭하세요.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">4</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;"><strong>"추가"</strong> 버튼을 누르면 바탕화면에 앱 아이콘이 생깁니다.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">5</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">바탕화면의 <strong>올림포스 아이콘</strong>을 눌러 앱처럼 실행하세요.</div>
+        </div>
+      </div>
+      <div style="margin-top:16px; padding:12px; background:var(--accent-bg); border-radius:8px; font-size:12px; color:var(--accent); line-height:1.6;">
+        💡 설치 후에는 브라우저 주소창 없이 앱처럼 실행됩니다.
+      </div>
+    </div>
+    <!-- 아이폰 내용 -->
+    <div id="content-ios" style="padding:20px; display:none;">
+      <p style="font-size:12px; color:var(--ink-60); margin-bottom:16px; line-height:1.6;">반드시 <strong>Safari</strong> 브라우저에서 진행하세요. Chrome에서는 설치가 안 됩니다.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">1</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;"><strong>Safari</strong>로 이 페이지를 열어주세요.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">2</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">하단 가운데 <strong>공유 버튼 (□↑)</strong> 을 탭하세요.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">3</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">메뉴에서 <strong>"홈 화면에 추가"</strong> 를 탭하세요.<br><span style="color:var(--ink-60); font-size:12px;">스크롤을 내려야 보일 수 있어요.</span></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">4</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">이름을 확인하고 오른쪽 상단 <strong>"추가"</strong> 를 탭하세요.</div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="min-width:28px; height:28px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;">5</div>
+          <div style="font-size:13px; color:var(--ink); line-height:1.6; padding-top:4px;">홈 화면의 <strong>올림포스 아이콘</strong>을 눌러 앱처럼 실행하세요.</div>
+        </div>
+      </div>
+      <div style="margin-top:16px; padding:12px; background:var(--accent-bg); border-radius:8px; font-size:12px; color:var(--accent); line-height:1.6;">
+        💡 아이폰은 반드시 Safari만 지원합니다. Chrome · 카카오 인앱 브라우저는 설치 불가입니다.
+      </div>
+    </div>
+    <!-- 닫기 버튼 -->
+    <div style="padding:0 20px 20px;">
+      <button onclick="document.getElementById('install-modal').style.display='none'" style="width:100%; padding:12px; background:var(--ink); color:var(--paper); border:none; border-radius:10px; font-family:var(--sans); font-size:14px; cursor:pointer;">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  const isAndroid = tab === 'android';
+  document.getElementById('content-android').style.display = isAndroid ? 'block' : 'none';
+  document.getElementById('content-ios').style.display = isAndroid ? 'none' : 'block';
+  document.getElementById('tab-android').style.background = isAndroid ? 'var(--accent)' : 'transparent';
+  document.getElementById('tab-android').style.color = isAndroid ? '#fff' : 'var(--accent)';
+  document.getElementById('tab-ios').style.background = isAndroid ? 'transparent' : 'var(--accent)';
+  document.getElementById('tab-ios').style.color = isAndroid ? 'var(--accent)' : '#fff';
+}
+// 모달 바깥 클릭시 닫기
+document.getElementById('install-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+
 </body>
 </html>
