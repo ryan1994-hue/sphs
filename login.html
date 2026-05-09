@@ -348,7 +348,7 @@ body {
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
   import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   // ── ⚠️ Firebase 설정값을 여기에 붙여넣으세요 ──────────────────────
@@ -374,42 +374,18 @@ body {
     provider.setCustomParameters({ prompt: 'select_account' });
   }
 
-  // 리디렉션 후 결과 처리 (iOS 대응)
-  (async () => {
-    const loading = document.getElementById('loading-wrap');
-    const btnWrap = document.getElementById('btn-wrap');
-    const errorBox = document.getElementById('error-box');
-    try {
-      loading.style.display = 'flex';
-      btnWrap.style.opacity = '0.4';
-      const result = await getRedirectResult(auth);
-      if (result) {
-        redirectHandled = true;
-        const user = result.user;
-        try { await syncUser(user); } catch(e) { console.warn('syncUser 실패:', e); }
-        const isAdmin = await checkAdmin(user.email);
-        window.location.href = isAdmin ? 'admin.html' : '올림포스_1to20강.html';
-        return;
-      }
-    } catch (err) {
-      console.error(err);
-      errorBox.style.display = 'block';
-      errorBox.textContent = `로그인 오류: ${err.message}`;
-    }
-    loading.style.display = 'none';
-    btnWrap.style.opacity = '1';
-  })();
+  // 초기 로딩 해제
+  document.getElementById('loading-wrap').style.display = 'none';
+  document.getElementById('btn-wrap').style.opacity = '1';
 
   // 이미 로그인된 경우 — 배너 표시 후 자동 이동
-  let redirectHandled = false;
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      if (!redirectHandled) {
+      {
         setTimeout(async () => {
-          if (redirectHandled) return;
           const isAdmin = await checkAdmin(user.email);
           window.location.href = isAdmin ? 'admin.html' : '올림포스_1to20강.html';
-        }, 1500);
+        }, 800);
       }
       // 배너 표시
       document.getElementById('already-in').style.display = 'block';
@@ -458,8 +434,11 @@ body {
     loading.style.display = 'flex';
 
     try {
-      await signInWithRedirect(auth, provider);
-      // 리디렉션 후 페이지가 이동하므로 아래 코드는 실행되지 않음
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      try { await syncUser(user); } catch(e) { console.warn('syncUser 실패:', e); }
+      const isAdmin = await checkAdmin(user.email);
+      window.location.href = isAdmin ? 'admin.html' : '올림포스_1to20강.html';
     } catch (err) {
       console.error(err);
       loading.style.display = 'none';
@@ -495,7 +474,7 @@ body {
     document.getElementById('google-btn').disabled = false;
     // 구글 계정 선택창 강제 표시 후 리디렉션
     provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithRedirect(auth, provider);
+    await signInWithPopup(auth, provider);
   };
 
   // Firestore에 사용자 정보 저장/업데이트
