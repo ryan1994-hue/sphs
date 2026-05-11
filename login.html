@@ -49,19 +49,27 @@ body {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: none; }
 }
-.login-head { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.login-head {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; margin-bottom: 40px; text-align: center;
+}
 .login-head img {
   width: 44px; height: 44px; object-fit: contain;
   border-radius: 8px; background: var(--ink); padding: 6px;
   filter: invert(1); opacity: 0.85;
+  margin-bottom: 8px;
 }
 .login-head .app-name {
   font-family: var(--serif); font-size: 48px; font-weight: 400;
-  color: var(--ink); letter-spacing: -0.01em; line-height: 1;
+  color: var(--ink); letter-spacing: -0.01em; line-height: 1; text-align: center;
+}
+.login-head .app-sub {
+  font-family: var(--serif); font-size: 22px; font-weight: 400;
+  color: var(--ink-60); letter-spacing: -0.01em; text-align: center;
 }
 .login-head .school {
   font-family: var(--mono); font-size: 9px; color: var(--ink-30);
-  letter-spacing: 0.14em; text-transform: uppercase; margin-top: 5px;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-top: 4px; text-align: center;
 }
 .install-guide-btn {
   margin-top: 7px; display: inline-flex; align-items: center; gap: 5px;
@@ -109,9 +117,53 @@ body {
 <div class="accent-bar"></div>
 <div class="card">
   <div class="login-head">
+    <!-- 기존 img 태그 그대로 -->
+    <div class="app-name">올림포스</div>
+    <div class="app-sub">고1 영어</div>
+    <div class="school">Shinpyeong High School · EBS 2026</div>
+    <button class="install-guide-btn" onclick="document.getElementById('install-modal').style.display='flex'">📲 설치 전 필독</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="welcome-text">
+    <h1>1강 — 20강<br><em>핵심 어휘 · 구문</em></h1>
+    <p>로그인 방식을 선택하세요.</p>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-student" onclick="location.href='login_student.html'">
+      🎓 학생으로 로그인
+    </button>
+    <button class="btn-admin" onclick="location.href='login_admin.html'">
+      🔑 관리자로 로그인
+    </button>
+  </div>
+
+  <div class="login-note">
+    로그인 정보는 학습 진행 데이터 저장에만 사용됩니다<br>
+    신평고등학교 · 올림포스 영어 학습 시스템
+  </div>
+</div>
+
+<!-- 설치 안내 모달 기존 코드 그대로 -->
+
+</body>
+</html>
+.accent-bar {
+  width: 3px; height: 100%; background: var(--accent);
+  position: fixed; left: 0; top: 0; opacity: 0.6;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="card">
+  <div class="login-head">
     <!-- 기존 login.html의 <img> 태그 그대로 복붙 -->
     <div class="titles">
-      <div class="app-name">올림포스 고1 영어</div>
+      <div class="app-name">올림포스</div>
+      <div class="app-name-sub">고1 영어</div>
       <div class="school">Shinpyeong High School · EBS 2026</div>
       <button class="install-guide-btn" onclick="document.getElementById('install-modal').style.display='flex'">📲 설치 전 필독</button>
     </div>
