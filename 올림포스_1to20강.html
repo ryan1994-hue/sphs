@@ -768,9 +768,9 @@ window.saveToFirestore = function() {
   }, 3000);
 };
 
-// ── 로그아웃 ─────────────────────────────────────────────────────
+// ── logout ─────────────────────────────────────────────────────
 window.doLogout = async function() {
-  if (!confirm('로그아웃하시겠습니까?')) return;
+  if (!confirm('logout하시겠습니까?')) return;
   await signOut(auth);
   sessionStorage.setItem('force_account_select', '1');
   window.location.href = 'login.html';
@@ -791,7 +791,7 @@ window.doLogout = async function() {
     <div style="display:flex;align-items:center;gap:8px">
       <button onclick="openProfileModal()" id="user-display-name" style="font-family:var(--mono);font-size:10px;opacity:0.6;letter-spacing:0.06em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:none;color:var(--paper);cursor:pointer;padding:0;text-align:right" title="내 정보 설정">닉네임 설정</button>
       <div class="streak">🔥 <span class="n" id="head-streak">0</span>일</div>
-      <button onclick="doLogout()" style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;background:rgba(247,243,236,0.1);border:1px solid rgba(247,243,236,0.15);color:var(--paper);padding:5px 10px;cursor:pointer;border-radius:2px;">로그아웃</button>
+      <button onclick="doLogout()" style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;background:rgba(247,243,236,0.1);border:1px solid rgba(247,243,236,0.15);color:var(--paper);padding:5px 10px;cursor:pointer;border-radius:2px;">logout</button>
     </div>
   </header>
 
