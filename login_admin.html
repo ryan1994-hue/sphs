@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>관리자 로그인 — 올림포스</title>
+<meta name="theme-color" content="#1A1611">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F7F3EC;
+  --paper-2: #EDE8DF;
+  --ink: #1A1611;
+  --ink-60: #5C5448;
+  --ink-30: #A09888;
+  --ink-12: #DDD8CF;
+  --accent: #2C6E63;
+  --admin: #5A3C14;
+  --admin-bg: #F3EBE0;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(90,60,20,0.05), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(90,60,20,0.03), transparent);
+}
+.card { width: 100%; max-width: 380px; animation: fadeUp .4s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-30);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 36px; padding: 0; transition: color .15s;
+}
+.back-btn:hover { color: var(--ink-60); }
+.page-title {
+  font-family: var(--serif); font-size: 30px; font-weight: 400;
+  line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 10px;
+}
+.page-desc { font-size: 13px; color: var(--ink-60); line-height: 1.6; margin-bottom: 36px; }
+.field-group { margin-bottom: 14px; }
+.field-group label {
+  display: block; font-family: var(--mono); font-size: 10px; color: var(--ink-30);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+}
+.field-group input {
+  width: 100%; padding: 13px 14px; background: white;
+  border: 1px solid var(--ink-12); border-radius: 2px;
+  font-family: var(--sans); font-size: 14px; color: var(--ink); outline: none;
+  transition: border-color .15s;
+}
+.field-group input:focus { border-color: var(--admin); }
+.field-group input::placeholder { color: var(--ink-30); }
+.login-btn {
+  width: 100%; margin-top: 4px; padding: 16px 20px;
+  background: var(--admin); color: #fff; border: none; border-radius: 2px;
+  font-family: var(--sans); font-size: 15px; font-weight: 500;
+  cursor: pointer; letter-spacing: -0.01em; transition: opacity .15s;
+}
+.login-btn:hover { opacity: 0.88; }
+.login-btn:active { transform: scale(0.99); }
+.error-box {
+  display: none; margin-top: 14px; padding: 12px 14px;
+  background: #FEF3EF; border: 1px solid #E8C4B4; border-radius: 2px;
+  font-size: 12px; color: #7A3928; font-family: var(--mono); line-height: 1.5;
+}
+.loading-wrap {
+  display: none; flex-direction: column; align-items: center; gap: 12px; padding: 24px 0;
+}
+.spinner {
+  width: 28px; height: 28px; border: 2px solid var(--ink-12);
+  border-top-color: var(--admin); border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-wrap p { font-family: var(--mono); font-size: 11px; color: var(--ink-30); letter-spacing: 0.08em; }
+.accent-bar { width: 3px; height: 100%; background: var(--admin); position: fixed; left: 0; top: 0; opacity: 0.6; }
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="card">
+  <button class="back-btn" onclick="location.href='login.html'">
+    ← 뒤로
+  </button>
+
+  <div class="page-title">관리자 로그인</div>
+  <div class="page-desc">관리자 아이디와 비밀번호를 입력해주세요.</div>
+
+  <div id="form-wrap">
+    <div class="field-group">
+      <label for="admin-id">아이디</label>
+      <input type="text" id="admin-id" placeholder="ID" autocomplete="username" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="field-group">
+      <label for="admin-pw">비밀번호</label>
+      <input type="password" id="admin-pw" placeholder="PW" autocomplete="current-password">
+    </div>
+    <div class="error-box" id="error-box"></div>
+    <button class="login-btn" onclick="adminLogin()">로그인</button>
+  </div>
+
+  <div class="loading-wrap" id="loading-wrap">
+    <div class="spinner"></div>
+    <p>확인 중...</p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('admin-id').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('admin-pw').focus();
+  });
+  document.getElementById('admin-pw').addEventListener('keydown', e => {
+    if (e.key === 'Enter') adminLogin();
+  });
+
+  function adminLogin() {
+    const id  = document.getElementById('admin-id').value.trim();
+    const pw  = document.getElementById('admin-pw').value;
+    const err = document.getElementById('error-box');
+
+    err.style.display = 'none';
+
+    if (!id || !pw) {
+      err.textContent = '아이디와 비밀번호를 모두 입력해주세요.';
+      err.style.display = 'block';
+      return;
+    }
+    if (id === 'admin' && pw === 'admin7076') {
+      document.getElementById('form-wrap').style.opacity = '0.4';
+      document.getElementById('loading-wrap').style.display = 'flex';
+      sessionStorage.setItem('admin_logged_in', 'true');
+      setTimeout(() => { window.location.href = 'admin.html'; }, 600);
+    } else {
+      err.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+      err.style.display = 'block';
+      document.getElementById('admin-pw').value = '';
+      document.getElementById('admin-pw').focus();
+    }
+  }
+</script>
+</body>
+</html>
