@@ -289,7 +289,7 @@ const TOTAL_VOCAB = 3382;
 const TOTAL_GANGS = 20;
 
 // ── Auth guard (sessionStorage) ──────────────────────────────────
-if (sessionStorage.getItem('admin_logged_in') === 'true') {
+if (localStorage.getItem('admin_logged_in') === 'true') {
   document.getElementById('admin-name').textContent = 'admin';
   loadDashboard();
 } else {
@@ -298,7 +298,7 @@ if (sessionStorage.getItem('admin_logged_in') === 'true') {
 
 // ── 로그아웃 ─────────────────────────────────────────────────────
 window.doLogout = function() {
-  sessionStorage.removeItem('admin_logged_in');
+  localStorage.removeItem('admin_logged_in');
   window.location.href = 'login.html';
 };
 
