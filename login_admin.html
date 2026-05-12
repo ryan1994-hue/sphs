@@ -148,7 +148,7 @@ body {
     if (id === 'admin' && pw === 'admin7076') {
       document.getElementById('form-wrap').style.opacity = '0.4';
       document.getElementById('loading-wrap').style.display = 'flex';
-      sessionStorage.setItem('admin_logged_in', 'true');
+      localStorage.setItem('admin_logged_in', 'true');
       setTimeout(() => { window.location.href = 'admin.html'; }, 600);
     } else {
       err.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
