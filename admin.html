@@ -291,7 +291,7 @@ const TOTAL_GANGS = 20;
 // ── Auth guard (sessionStorage) ──────────────────────────────────
 if (localStorage.getItem('admin_logged_in') === 'true') {
   document.getElementById('admin-name').textContent = 'admin';
-  loadDashboard();
+  window.loadDashboard();
 } else {
   window.location.href = 'login.html';
 }
