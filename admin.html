@@ -288,14 +288,6 @@ const db  = getFirestore(app);
 const TOTAL_VOCAB = 3382;
 const TOTAL_GANGS = 20;
 
-// ── Auth guard (sessionStorage) ──────────────────────────────────
-if (localStorage.getItem('admin_logged_in') === 'true') {
-  document.getElementById('admin-name').textContent = 'admin';
-  window.loadDashboard();
-} else {
-  window.location.href = 'login.html';
-}
-
 // ── 로그아웃 ─────────────────────────────────────────────────────
 window.doLogout = function() {
   localStorage.removeItem('admin_logged_in');
@@ -577,6 +569,14 @@ window.resetAllScores = async function() {
     btn.disabled = false; btn.textContent = '⚠ 전체 초기화';
   }
 };
+
+// ── Auth guard ───────────────────────────────────────────────────
+if (localStorage.getItem('admin_logged_in') === 'true') {
+  document.getElementById('admin-name').textContent = 'admin';
+  window.loadDashboard();
+} else {
+  window.location.href = 'login.html';
+}
 </script>
 </body>
 </html>
